@@ -42,7 +42,7 @@ class waybackmachine:
         }
         r = requests.get("https://archive.org/wayback/available", params=params)
 
-        archive = r.json().get('archived_snapshots', {}).get('closest')
+        archive = r.json()['archived_snapshots'].get('closest')
         if archive:
             archive_url, archive_timestamp = archive['url'], archive['timestamp']
             return (archive_url, archive_timestamp)
