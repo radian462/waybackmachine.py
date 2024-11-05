@@ -1,9 +1,10 @@
 from datetime import datetime
 import logging
 from logging import getLogger, DEBUG
-from playwright.sync_api import sync_playwright
+import re
 
 import requests
+from playwright.sync_api import sync_playwright
 
 from exceptions import *
 
@@ -55,6 +56,7 @@ class waybackmachine:
         archive = r.json()["archived_snapshots"].get("closest")
         if archive:
             archive_url, archive_timestamp = archive["url"], archive["timestamp"]
+            archive_timestamp = datetime.strptime(archive_timestamp, "%Y%m%d%H%M%S")
             return (archive_url, archive_timestamp)
         else:
             return ()
@@ -77,7 +79,8 @@ class waybackmachine:
             page.goto(url, wait_until='domcontentloaded')
 
             if path is None:
-                path = page.title() + ".mhtml"
+                timestamp = re.search(r'web\.archive\.org/web/(\d+)/', url).group(1)
+                path = f"{page.title()} - {timestamp}.mhtml"
 
             client = page.context.new_cdp_session(page)
             mhtml = client.send("Page.captureSnapshot")['data']
@@ -91,4 +94,4 @@ class waybackmachine:
 
 if __name__ == "__main__":
     wayback = waybackmachine(debug=True)
-    wayback.download("http://web.archive.org/web/20241105044634/https://github.com/")
+    wayback.download("https://github.com/")
