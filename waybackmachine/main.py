@@ -33,22 +33,31 @@ class waybackmachine:
         self.logger.info("Finish saving website")
         return r.url
 
-    def get(self, url: str, timestamp: datetime = None) -> tuple:
-        timestamp = datetime.now() if timestamp is None else timestamp
+    def get(self, url: str, timestamp: datetime | str = "latest") -> tuple:
+        if timestamp not in ["latest","oldest"] and not isinstance(timestamp, datetime):
+             raise ValueError("timestamp should be 'latest', 'oldest', or a datetime object")
+        
+        timestamp = (
+            datetime.now() if timestamp == "latest" else 
+            datetime(2001, 10, 24, 0, 0, 0) if timestamp == "oldest" else timestamp
+        )
         timestamp_str = timestamp.strftime("%Y%m%d%H%M%S")
+
         params = {
             "url": url,
-            "timestanp": timestamp_str,
+            "timestamp": timestamp_str,
         }
+
         r = requests.get("https://archive.org/wayback/available", params=params)
 
-        archive = r.json()['archived_snapshots'].get('closest')
+        archive = r.json()["archived_snapshots"].get("closest")
         if archive:
-            archive_url, archive_timestamp = archive['url'], archive['timestamp']
+            archive_url, archive_timestamp = archive["url"], archive["timestamp"]
             return (archive_url, archive_timestamp)
         else:
             return ()
 
+
 if __name__ == "__main__":
     wayback = waybackmachine()
-    
+    print(wayback.get(url="https://github.com",timestamp="oldest"))
