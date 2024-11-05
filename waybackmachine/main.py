@@ -1,6 +1,7 @@
 from datetime import datetime
 import logging
 from logging import getLogger, INFO
+from playwright.sync_api import sync_playwright
 
 import requests
 
@@ -56,8 +57,26 @@ class waybackmachine:
             return (archive_url, archive_timestamp)
         else:
             return ()
+        
+    def download(self,url:str,path:str|None=None) -> str:
+        if not "https://web.archive.org/web/" in url:
+            url = self.get(url)[0]
 
+        with sync_playwright() as playwright:
+            self.browser = playwright.chromium.launch(headless=True)
+            page = self.browser.new_page()
+            page.goto(url, wait_until='networkidle')
+
+            if path is None:
+                path = page.title() + ".mhtml"
+                
+            client = page.context.new_cdp_session(page)
+            mhtml = client.send("Page.captureSnapshot")['data']
+            with open(path, mode='w', encoding='UTF-8', newline='\n') as file:
+                file.write(mhtml)
+
+        return path
 
 if __name__ == "__main__":
     wayback = waybackmachine()
-    print(wayback.get(url="https://github.com",timestamp="oldest"))
+    wayback.download("https://github.com")
