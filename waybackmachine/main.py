@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 from logging import getLogger, DEBUG
 import re
+from urllib.parse import urlparse
 
 import requests
 from playwright.sync_api import sync_playwright
@@ -10,9 +11,9 @@ from exceptions import *
 
 
 class waybackmachine:
-    def __init__(self, user_agent: str = "", proxy: dict = {}, debug: bool = False) -> None:
+    def __init__(self, user_agent: str = "", proxies: dict = {}, debug: bool = False) -> None:
         self.user_agent = user_agent
-        self.proxy = proxy
+        self.proxies = proxies
 
         self.logger = getLogger("Wayback")
         if debug == True:
@@ -24,7 +25,7 @@ class waybackmachine:
 
     def save(self, url: str) -> str:
         self.logger.debug("Start saving website")
-        r = requests.get("https://web.archive.org/save/" + url)
+        r = requests.get("https://web.archive.org/save/" + url, proxies=self.proxies)
 
         if r.status_code == 429:
             raise TooManyRequestsError(
@@ -51,7 +52,7 @@ class waybackmachine:
             "timestamp": timestamp_str,
         }
 
-        r = requests.get("https://archive.org/wayback/available", params=params)
+        r = requests.get("https://archive.org/wayback/available", params=params, proxies=self.proxies)
 
         archive = r.json()["archived_snapshots"].get("closest")
         if archive:
@@ -64,16 +65,39 @@ class waybackmachine:
     def download(self,url:str,path:str|None=None) -> str:
         self.logger.debug(f"url:{url}")
         self.logger.debug(f"path:{path}")
+
+
         if not "web.archive.org/web/" in url:
             url = self.get(url)
-            if url:
-                url = url[0]
-            else:
-                raise NotFoundError("Archive Not Found")
+
+        if url:
+            url = url[0]
+        else:
+            raise NotFoundError("Archive Not Found")
+            
+        playwright_proxy = {}
+        if self.proxies:
+            scheme = urlparse(url).scheme
+            proxy = self.proxies.get(scheme)
+            if proxy:
+                playwright_proxy = {'server': proxy}
+                if '@' in proxy:
+                    auth, ip = proxy.split('@')
+                    playwright_proxy['server'] = 'http://' + ip
+                    username, password = auth.split('//')[1].split(':')
+                    playwright_proxy['username'] = username
+                    playwright_proxy['password'] = password
 
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(headless=True)
+            launch_options = {
+                'headless': True
+            }
+            if playwright_proxy:
+                launch_options['proxy'] = playwright_proxy
+
+            browser = playwright.chromium.launch(**launch_options)
             self.logger.debug(f"Browser launch")
+        
             page = browser.new_page()
             self.logger.debug(f"Access to {url}")
             page.goto(url, wait_until='domcontentloaded')
@@ -94,4 +118,4 @@ class waybackmachine:
 
 if __name__ == "__main__":
     wayback = waybackmachine(debug=True)
-    wayback.download("https://github.com/")
+    print(wayback.download("https://github.com/"))
