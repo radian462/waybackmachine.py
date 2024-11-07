@@ -3,3 +3,6 @@ class TooManyRequestsError(Exception):
 
 class NotFoundError(Exception):
     pass
+
+class RetryLimitExceededError(Exception):
+    pass
