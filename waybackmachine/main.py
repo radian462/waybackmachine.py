@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 import requests
 from playwright.sync_api import sync_playwright
 
-from exceptions import *
+from .exceptions import *
 
 
 class waybackmachine:
@@ -62,12 +62,12 @@ class waybackmachine:
             max_tries = self.max_tries
 
         if timestamp not in ["latest", "oldest"] and not isinstance(
-                    timestamp, datetime
-                ):
-                    raise ValueError(
-                        "timestamp should be 'latest', 'oldest', or a datetime object"
-                    )
-        
+            timestamp, datetime
+        ):
+            raise ValueError(
+                "timestamp should be 'latest', 'oldest', or a datetime object"
+            )
+
         for i in range(max_tries):
             try:
                 timestamp = (
@@ -109,7 +109,13 @@ class waybackmachine:
                 if i + 1 == max_tries:
                     raise RetryLimitExceededError("The retry limit has been reached.")
 
-    def download(self, url: str, path: str | None = None, ext:str = "mhtml",max_tries: int = None) -> str:
+    def download(
+        self,
+        url: str,
+        path: str | None = None,
+        ext: str = "mhtml",
+        max_tries: int = None,
+    ) -> str:
         if max_tries is None:
             max_tries = self.max_tries
 
@@ -160,30 +166,27 @@ class waybackmachine:
                             r"web\.archive\.org/web/(\d+)/", archive_url
                         ).group(1)
                         path = f"{page.title()} - {timestamp}.{ext}"
-                        
+
                     if not path.endswith(ext):
                         path += f".{ext}"
 
                     if ext == "mhtml":
                         client = page.context.new_cdp_session(page)
                         mhtml = client.send("Page.captureSnapshot")["data"]
-                        with open(path, mode="w", encoding="UTF-8", newline="\n") as file:
+                        with open(
+                            path, mode="w", encoding="UTF-8", newline="\n"
+                        ) as file:
                             file.write(mhtml)
                     elif ext == "pdf":
                         page.pdf(path=path)
 
                     browser.close()
                     self.logger.debug(f"Browser close")
-                    
+
                     absolute_path = Path(path).resolve()
                 return absolute_path
-            
+
             except Exception as e:
                 self.logger.debug(f"Attempt {i + 1} failed: {e}")
                 if i + 1 == max_tries:
                     raise RetryLimitExceededError("The retry limit has been reached.")
-
-
-if __name__ == "__main__":
-    wayback = waybackmachine(debug=True)
-    print(wayback.download("https://google.com/",ext="pdf"))
