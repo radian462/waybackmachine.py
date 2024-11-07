@@ -1,6 +1,5 @@
 from datetime import datetime
-import logging
-from logging import getLogger, DEBUG
+from logging import getLogger, StreamHandler, Formatter, DEBUG
 import re
 from urllib.parse import urlparse
 
@@ -25,8 +24,8 @@ class waybackmachine:
         self.logger = getLogger("Wayback")
         if debug == True:
             self.logger.setLevel(DEBUG)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter("[%(levelname)s] %(message)s")
+        handler = StreamHandler()
+        formatter = Formatter("[%(levelname)s] %(message)s")
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
 
@@ -175,4 +174,4 @@ class waybackmachine:
 
 if __name__ == "__main__":
     wayback = waybackmachine(debug=True)
-    print(wayback.save("https://google.com/"))
+    print(wayback.download("https://google.com/"))
