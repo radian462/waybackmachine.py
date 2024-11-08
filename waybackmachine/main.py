@@ -2,6 +2,7 @@ from datetime import datetime
 from logging import getLogger, StreamHandler, Formatter, DEBUG
 from pathlib import Path
 import re
+from traceback import format_exc
 from urllib.parse import urlparse
 
 import requests
@@ -51,7 +52,7 @@ class waybackmachine:
                 self.logger.debug("Finish saving website")
                 return r.url
             except Exception as e:
-                self.logger.debug(f"Attempt {i + 1} failed: {e}")
+                self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
                 if i + 1 == max_tries:
                     raise RetryLimitExceededError("The retry limit has been reached.")
 
@@ -105,7 +106,8 @@ class waybackmachine:
                 else:
                     return ()
             except Exception as e:
-                self.logger.debug(f"Attempt {i + 1} failed: {e}")
+                self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
+                
                 if i + 1 == max_tries:
                     raise RetryLimitExceededError("The retry limit has been reached.")
 
@@ -187,6 +189,6 @@ class waybackmachine:
                 return absolute_path
 
             except Exception as e:
-                self.logger.debug(f"Attempt {i + 1} failed: {e}")
+                self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
                 if i + 1 == max_tries:
                     raise RetryLimitExceededError("The retry limit has been reached.")
