@@ -15,14 +15,11 @@ class waybackmachine:
     def __init__(
         self,
         max_tries: int = 5,
-        user_agent: str = "",
+        browser_type: str = "chromium",
+        user_agent: str = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36",
         proxies: dict = {},
         debug: bool = False,
     ) -> None:
-        self.user_agent = user_agent
-        self.proxies = proxies
-        self.max_tries = max_tries
-
         self.logger = getLogger("Wayback")
         if debug == True:
             self.logger.setLevel(DEBUG)
@@ -30,6 +27,18 @@ class waybackmachine:
         formatter = Formatter("[%(levelname)s] %(message)s")
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
+
+        self.user_agent = user_agent
+        self.proxies = proxies
+        self.max_tries = max_tries
+
+        if browser_type not in ['chromium', 'firefox', 'webkit']:
+            raise ValueError("browser_type should be 'chromium', 'firefox' or 'webkit'")
+        
+        self.browser_type = browser_type
+        self.playwright = sync_playwright().start()
+        self.browser = getattr(self.playwright, self.browser_type).launch()
+        self.logger.debug("Browser launch")
 
     def save(self, url: str, max_tries: int = None) -> str:
         if max_tries is None:
@@ -51,10 +60,10 @@ class waybackmachine:
 
                 self.logger.debug("Finish saving website")
                 return r.url
-            except Exception as e:
+            except Exception:
                 self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
                 if i + 1 == max_tries:
-                    raise RetryLimitExceededError("The retry limit has been reached.")
+                    raise RetryLimitExceededError(f"The retry limit has been reached.\n{format_exc()}")
 
     def get(
         self, url: str, timestamp: datetime | str = "latest", max_tries: int = None
@@ -105,11 +114,11 @@ class waybackmachine:
                     return (archive_url, archive_timestamp)
                 else:
                     return ()
-            except Exception as e:
+            except Exception:
                 self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
                 
                 if i + 1 == max_tries:
-                    raise RetryLimitExceededError("The retry limit has been reached.")
+                    raise RetryLimitExceededError(f"The retry limit has been reached.\n{format_exc()}")
 
     def download(
         self,
@@ -151,44 +160,41 @@ class waybackmachine:
                             playwright_proxy["username"] = username
                             playwright_proxy["password"] = password
 
-                with sync_playwright() as playwright:
-                    launch_options = {"headless": True}
-                    if playwright_proxy:
-                        launch_options["proxy"] = playwright_proxy
+               
+                launch_options = {"headless": True}
+                if playwright_proxy:
+                    launch_options["proxy"] = playwright_proxy
 
-                    browser = playwright.chromium.launch(**launch_options)
-                    self.logger.debug(f"Browser launch")
+                page = self.browser.new_page()
+                self.logger.debug(f"Access to {archive_url}")
+                page.goto(archive_url, wait_until="domcontentloaded")
 
-                    page = browser.new_page()
-                    self.logger.debug(f"Access to {archive_url}")
-                    page.goto(archive_url, wait_until="domcontentloaded")
+                if path is None:
+                    timestamp = re.search(
+                        r"web\.archive\.org/web/(\d+)/", archive_url
+                    ).group(1)
+                    path = f"{page.title()} - {timestamp}.{ext}"
 
-                    if path is None:
-                        timestamp = re.search(
-                            r"web\.archive\.org/web/(\d+)/", archive_url
-                        ).group(1)
-                        path = f"{page.title()} - {timestamp}.{ext}"
+                if not path.endswith(ext):
+                    path += f".{ext}"
 
-                    if not path.endswith(ext):
-                        path += f".{ext}"
+                if ext == "mhtml":
+                    client = page.context.new_cdp_session(page)
+                    mhtml = client.send("Page.captureSnapshot")["data"]
+                    with open(
+                        path, mode="w", encoding="UTF-8", newline="\n"
+                    ) as file:
+                        file.write(mhtml)
+                elif ext == "pdf":
+                    page.pdf(path=path)
 
-                    if ext == "mhtml":
-                        client = page.context.new_cdp_session(page)
-                        mhtml = client.send("Page.captureSnapshot")["data"]
-                        with open(
-                            path, mode="w", encoding="UTF-8", newline="\n"
-                        ) as file:
-                            file.write(mhtml)
-                    elif ext == "pdf":
-                        page.pdf(path=path)
+                page.close()
+                self.logger.debug(f"Page close")
 
-                    browser.close()
-                    self.logger.debug(f"Browser close")
-
-                    absolute_path = Path(path).resolve()
+                absolute_path = Path(path).resolve()
                 return absolute_path
 
-            except Exception as e:
+            except Exception:
                 self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
                 if i + 1 == max_tries:
-                    raise RetryLimitExceededError("The retry limit has been reached.")
+                    raise RetryLimitExceededError(f"The retry limit has been reached.\n{format_exc()}")

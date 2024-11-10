@@ -25,9 +25,9 @@ extensions = [
     'myst_parser'
 ]
 
+source_suffix = ['.rst', '.md']
 templates_path = ['_templates']
 exclude_patterns = []
-
 
 
 # -- Options for HTML output -------------------------------------------------
