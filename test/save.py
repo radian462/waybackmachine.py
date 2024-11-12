@@ -1,4 +1,4 @@
 from waybackmachine import waybackmachine
 
-wayback = waybackmachine()
-print(wayback.save('https://github.com/'))
+wayback = waybackmachine(debug=True)
+print(wayback.save('https://www.deepl.com/ja/translator'))

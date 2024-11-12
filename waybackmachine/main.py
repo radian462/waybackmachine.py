@@ -1,10 +1,13 @@
 from datetime import datetime
-from logging import getLogger, StreamHandler, Formatter, DEBUG
+from logging import getLogger, StreamHandler, Formatter, DEBUG, INFO
 from pathlib import Path
 import re
+from threading import Thread
+import time
 from traceback import format_exc
 from urllib.parse import urlparse
 
+from bs4 import BeautifulSoup
 import requests
 from playwright.sync_api import sync_playwright
 
@@ -23,6 +26,8 @@ class waybackmachine:
         self.logger = getLogger("Wayback")
         if debug == True:
             self.logger.setLevel(DEBUG)
+        else:
+            self.logger.setLevel(INFO)
         handler = StreamHandler()
         formatter = Formatter("[%(levelname)s] %(message)s")
         handler.setFormatter(formatter)
@@ -32,38 +37,107 @@ class waybackmachine:
         self.proxies = proxies
         self.max_tries = max_tries
 
-        if browser_type not in ['chromium', 'firefox', 'webkit']:
+        if browser_type not in ["chromium", "firefox", "webkit"]:
             raise ValueError("browser_type should be 'chromium', 'firefox' or 'webkit'")
-        
+
         self.browser_type = browser_type
         self.playwright = sync_playwright().start()
         self.browser = getattr(self.playwright, self.browser_type).launch()
         self.logger.debug("Browser launch")
 
-    def save(self, url: str, max_tries: int = None) -> str:
+    def save(self, url: str, show_resourses: bool = True, max_tries: int = None) -> str:
         if max_tries is None:
             max_tries = self.max_tries
 
-        for i in range(max_tries):
-            try:
-                self.logger.debug("Start saving website")
-                r = requests.get(
-                    "https://web.archive.org/save/" + url, proxies=self.proxies
-                )
+        archive_data = {"url": None, "resourses": None}
 
-                if r.status_code == 429:
-                    raise TooManyRequestsError(
-                        "Your IP has been blocked."
-                        "Save Page Now has a limit of 15 requests per minute."
-                        "Please try again in 5 minutes."
+        def archive_save():
+            for i in range(max_tries):
+                try:
+                    r = requests.get(
+                        "https://web.archive.org/save/" + url, proxies=self.proxies
                     )
 
-                self.logger.debug("Finish saving website")
-                return r.url
-            except Exception:
-                self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
-                if i + 1 == max_tries:
-                    raise RetryLimitExceededError(f"The retry limit has been reached.\n{format_exc()}")
+                    if r.status_code == 429:
+                        raise TooManyRequestsError(
+                            "Your IP has been blocked."
+                            "Save Page Now has a limit of 15 requests per minute."
+                            "Please try again in 5 minutes."
+                        )
+
+                    archive_data["url"] = r.url
+                except Exception:
+                    self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
+                    if i + 1 == max_tries:
+                        raise RetryLimitExceededError(
+                            f"The retry limit has been reached.\n{format_exc()}"
+                        )
+
+        def get_resourses():
+            for i in range(max_tries):
+                try:
+                    data = {"url": url, "capture_all": "on"}
+
+                    headers = {
+                        "User-Agent": self.user_agent,
+                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng",
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    }
+
+                    r = requests.post(
+                        "https://web.archive.org/save/" + url,
+                        headers=headers,
+                        data=data,
+                        proxies=self.proxies,
+                    )
+                    soup = BeautifulSoup(r.text, "html.parser")
+
+                    job_id = None
+                    for script in soup.find_all("script"):
+                        if script.string:
+                            matches = re.findall(
+                                r'spn\.watchJob\("([^"]+)",', script.string
+                            )
+                            if matches:
+                                job_id = matches[0]
+                                break
+
+                    if job_id:
+                        self.logger.debug(f"job_id is {job_id}")
+                        status, old_resourses = "pending", []
+                        while status == "pending":
+                            status_r = requests.get(
+                                "https://web.archive.org/save/status/" + job_id
+                            )
+                            status_data = status_r.json()
+                            new_resourses = status_data.get("resources", [])
+                            if new_resourses != old_resourses:
+                                for c in set(new_resourses) - set(old_resourses):
+                                    self.logger.info(c)
+                            old_resourses = new_resourses
+                            status = status_data.get("status", "pending")
+                            time.sleep(3)
+
+                        archive_data["resourses"] = old_resourses
+                    else:
+                        self.logger.debug(f"job_id not found")
+                except Exception:
+                    self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
+                    if i + 1 == max_tries:
+                        raise RetryLimitExceededError(
+                            f"The retry limit has been reached.\n{format_exc()}"
+                        )
+
+        archive_data = {"url": None, "resourses": None}
+
+        thread1 = Thread(target=archive_save)
+        thread2 = Thread(target=get_resourses)
+        thread1.start()
+        thread2.start()
+        thread1.join()
+        thread2.join()
+
+        return archive_data
 
     def get(
         self, url: str, timestamp: datetime | str = "latest", max_tries: int = None
@@ -116,9 +190,11 @@ class waybackmachine:
                     return ()
             except Exception:
                 self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
-                
+
                 if i + 1 == max_tries:
-                    raise RetryLimitExceededError(f"The retry limit has been reached.\n{format_exc()}")
+                    raise RetryLimitExceededError(
+                        f"The retry limit has been reached.\n{format_exc()}"
+                    )
 
     def download(
         self,
@@ -160,7 +236,6 @@ class waybackmachine:
                             playwright_proxy["username"] = username
                             playwright_proxy["password"] = password
 
-               
                 launch_options = {"headless": True}
                 if playwright_proxy:
                     launch_options["proxy"] = playwright_proxy
@@ -181,9 +256,7 @@ class waybackmachine:
                 if ext == "mhtml":
                     client = page.context.new_cdp_session(page)
                     mhtml = client.send("Page.captureSnapshot")["data"]
-                    with open(
-                        path, mode="w", encoding="UTF-8", newline="\n"
-                    ) as file:
+                    with open(path, mode="w", encoding="UTF-8", newline="\n") as file:
                         file.write(mhtml)
                 elif ext == "pdf":
                     page.pdf(path=path)
@@ -197,4 +270,6 @@ class waybackmachine:
             except Exception:
                 self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
                 if i + 1 == max_tries:
-                    raise RetryLimitExceededError(f"The retry limit has been reached.\n{format_exc()}")
+                    raise RetryLimitExceededError(
+                        f"The retry limit has been reached.\n{format_exc()}"
+                    )
