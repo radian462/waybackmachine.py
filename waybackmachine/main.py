@@ -45,13 +45,13 @@ class waybackmachine:
         self.browser = getattr(self.playwright, self.browser_type).launch()
         self.logger.debug("Browser launch")
 
-    def save(self, url: str, show_resourses: bool = True, max_tries: int = None) -> str:
+    def save(self, url: str, show_resources: bool = True, max_tries: int = None) -> str:
         if max_tries is None:
             max_tries = self.max_tries
 
-        archive_data = {"url": None, "resourses": None}
+        archive_data = {"url": None, "timestamp": None, "resources": None}
 
-        def archive_save():
+        def archive_save() -> None:
             for i in range(max_tries):
                 try:
                     r = requests.get(
@@ -66,14 +66,21 @@ class waybackmachine:
                         )
 
                     archive_data["url"] = r.url
-                except Exception:
+                except Exception as e:
                     self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
                     if i + 1 == max_tries:
                         raise RetryLimitExceededError(
                             f"The retry limit has been reached.\n{format_exc()}"
                         )
 
-        def get_resourses():
+        def get_resources() -> None:
+            def get_status(job_id: str) -> dict:
+                status_r = requests.get(
+                    "https://web.archive.org/save/status/" + job_id,
+                    proxies=self.proxies,
+                )
+                return status_r.json()
+
             for i in range(max_tries):
                 try:
                     data = {"url": url, "capture_all": "on"}
@@ -103,35 +110,46 @@ class waybackmachine:
                                 break
 
                     if job_id:
-                        self.logger.debug(f"job_id is {job_id}")
-                        status, old_resourses = "pending", []
-                        while status == "pending":
-                            status_r = requests.get(
-                                "https://web.archive.org/save/status/" + job_id
-                            )
-                            status_data = status_r.json()
-                            new_resourses = status_data.get("resources", [])
-                            if new_resourses != old_resourses:
-                                for c in set(new_resourses) - set(old_resourses):
-                                    self.logger.info(c)
-                            old_resourses = new_resourses
-                            status = status_data.get("status", "pending")
-                            time.sleep(3)
+                        if show_resources:
+                            self.logger.debug(f"job_id is {job_id}")
+                            status, old_resources = "pending", []
+                            while status == "pending":
+                                status_data = get_status(job_id)
+                                new_resources = status_data.get("resources", [])
+                                if new_resources != old_resources:
+                                    for c in set(new_resources) - set(old_resources):
+                                        self.logger.info(c)
+                                old_resources = new_resources
+                                status = status_data.get("status", "pending")
+                                for i in range(30):
+                                    if archive_data["url"] is None or status == "pending":
+                                        time.sleep(0.1)
+                                    else:
+                                        status_data = get_status(job_id)
+                                        new_resources = status_data.get("resources", [])
+                                        if new_resources != old_resources:
+                                            for c in set(new_resources) - set(old_resources):
+                                                self.logger.info(c)
+                        else:
+                            while archive_data["url"] is None:
+                                time.sleep(0.1)
 
-                        archive_data["resourses"] = old_resourses
+                        final_status = get_status(job_id)
+                        archive_data["timestamp"] = final_status.get("timestamp", [])
+                        archive_data["resources"] = final_status.get("resources", [])
                     else:
                         self.logger.debug(f"job_id not found")
-                except Exception:
+                except Exception as e:
                     self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
                     if i + 1 == max_tries:
                         raise RetryLimitExceededError(
                             f"The retry limit has been reached.\n{format_exc()}"
                         )
 
-        archive_data = {"url": None, "resourses": None}
+        archive_data = {"url": None, "resources": None}
 
         thread1 = Thread(target=archive_save)
-        thread2 = Thread(target=get_resourses)
+        thread2 = Thread(target=get_resources)
         thread1.start()
         thread2.start()
         thread1.join()
@@ -188,7 +206,7 @@ class waybackmachine:
                     return (archive_url, archive_timestamp)
                 else:
                     return ()
-            except Exception:
+            except Exception as e:
                 self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
 
                 if i + 1 == max_tries:
@@ -267,7 +285,7 @@ class waybackmachine:
                 absolute_path = Path(path).resolve()
                 return absolute_path
 
-            except Exception:
+            except Exception as e:
                 self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
                 if i + 1 == max_tries:
                     raise RetryLimitExceededError(
