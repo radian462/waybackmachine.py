@@ -122,13 +122,18 @@ class waybackmachine:
                                 old_resources = new_resources
                                 status = status_data.get("status", "pending")
                                 for i in range(30):
-                                    if archive_data["url"] is None or status == "pending":
+                                    if (
+                                        archive_data["url"] is None
+                                        or status == "pending"
+                                    ):
                                         time.sleep(0.1)
                                     else:
                                         status_data = get_status(job_id)
                                         new_resources = status_data.get("resources", [])
                                         if new_resources != old_resources:
-                                            for c in set(new_resources) - set(old_resources):
+                                            for c in set(new_resources) - set(
+                                                old_resources
+                                            ):
                                                 self.logger.info(c)
                         else:
                             while archive_data["url"] is None:
