@@ -146,8 +146,6 @@ class waybackmachine:
                             f"The retry limit has been reached.\n{format_exc()}"
                         )
 
-        archive_data = {"url": None, "resources": None}
-
         thread1 = Thread(target=archive_save)
         thread2 = Thread(target=get_resources)
         thread1.start()
