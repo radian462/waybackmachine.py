@@ -227,8 +227,8 @@ class waybackmachine:
         if max_tries is None:
             max_tries = self.max_tries
 
-        if ext not in ["mhtml", "pdf"]:
-            raise ValueError("ext should be 'mhtml' or 'pdf'")
+        if ext not in ["mhtml", "mht", "pdf"]:
+            raise ValueError("ext should be 'mhtml', 'mht' or 'pdf'")
 
         for i in range(max_tries):
             try:
