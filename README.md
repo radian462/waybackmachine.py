@@ -26,7 +26,7 @@ playwright install
 from waybacktools import waybackmachine
 
 wayback = waybackmachine()
-print(wayback.save('https://github.com'))
+print(wayback.save('https://github.com/radian462/waybacktools/'))
 ```
 <details>
     <summary>ログ</summary>
@@ -42,13 +42,15 @@ print(wayback.save('https://github.com'))
 from waybacktools import waybackmachine
     
 wayback = waybackmachine()
-print(wayback.save('https://github.com',show_resources=False))
+print(wayback.save('https://github.com/radian462/waybacktools/',show_resources=False))
 ```
 
 
 <details>
     <summary>ログ</summary>
+    
 ```python
+
 ```
 </details>
 
