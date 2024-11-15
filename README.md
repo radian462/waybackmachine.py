@@ -21,6 +21,52 @@ playwright install
 ```
 
 # 使い方
+## 保存
+```python
+from waybacktools import waybackmachine
+
+wayback = waybackmachine()
+print(wayback.save('https://github.com'))
+```
+<details>
+    <summary>ログ</summary>
+    
+```bash
+    
+```   
+</details>
+  
+このようにサイトによっては膨大な量のログが流れるので、リソースログを隠したい場合はこのように書いてください。
+
+```python
+from waybacktools import waybackmachine
+    
+wayback = waybackmachine()
+print(wayback.save('https://github.com',show_resources=False))
+```
+
+
+<details>
+    <summary>ログ</summary>
+```python
+```
+</details>
+
+## 取得
+```python
+from waybacktools import waybackmachine
+
+wayback = waybackmachine()
+print(wayback.get('https://github.com/radian462/waybacktools'))
+```
+
+## ダウンロード
+```python
+from waybacktools import waybackmachine
+
+wayback = waybackmachine()
+print(wayback.download('https://github.com/radian462/waybacktools'))
+```
 
 # 実装予定
 - [ ] asyncに対応
