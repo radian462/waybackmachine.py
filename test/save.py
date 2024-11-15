@@ -1,4 +1,4 @@
-from waybackmachine import waybackmachine
+from waybacktools import waybackmachine
 
 wayback = waybackmachine()
-print(wayback.save('https://github.com/'))
+print(wayback.save('https://dmwiki.net'))
