@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 [English](./README-EN.md)
 
-# waybackmachine.py
-=======
 # waybacktools
->>>>>>> main
 waybackmachineのpythonの非公式APIラッパー  
 現在開発中
 
