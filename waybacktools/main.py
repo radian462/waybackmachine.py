@@ -83,7 +83,7 @@ class waybackmachine:
                     proxies=self.proxies,
                 )
                 return status_r.json()
-            
+
             session = requests.session()
             for i in range(max_tries):
                 try:
@@ -118,7 +118,7 @@ class waybackmachine:
                             self.logger.debug(f"job_id is {job_id}")
                             status, old_resources = "pending", []
                             while status == "pending":
-                                status_data = get_status(job_id,session)
+                                status_data = get_status(job_id, session)
                                 new_resources = status_data.get("resources", [])
                                 if new_resources != old_resources:
                                     for c in set(new_resources) - set(old_resources):
@@ -132,7 +132,7 @@ class waybackmachine:
                                     ):
                                         time.sleep(0.1)
                                     else:
-                                        status_data = get_status(job_id,session)
+                                        status_data = get_status(job_id, session)
                                         new_resources = status_data.get("resources", [])
                                         if new_resources != old_resources:
                                             for c in set(new_resources) - set(
@@ -143,7 +143,7 @@ class waybackmachine:
                             while archive_data["url"] is None:
                                 time.sleep(0.1)
 
-                        final_status = get_status(job_id,session)
+                        final_status = get_status(job_id, session)
                         archive_data["timestamp"] = self.conv_datetime(
                             final_status.get("timestamp", "")
                         )
@@ -237,7 +237,7 @@ class waybackmachine:
     def download(
         self,
         url: str,
-        path: str | None = None,
+        path: str = "%(title)s - %(timestamp)s.%(ext)s",
         ext: str = "mhtml",
         max_tries: int = None,
     ) -> str:
@@ -282,27 +282,32 @@ class waybackmachine:
                 self.logger.debug(f"Access to {archive_url}")
                 page.goto(archive_url, wait_until="domcontentloaded")
 
-                if path is None:
-                    timestamp = re.search(
-                        r"web\.archive\.org/web/(\d+)/", archive_url
-                    ).group(1)
-                    path = f"{page.title()} - {timestamp}.{ext}"
+                title = page.title()
+                timestamp = re.search(
+                    r"web\.archive\.org/web/(\d+)/", archive_url
+                ).group(1)
 
-                if not path.endswith(ext):
-                    path += f".{ext}"
+                format_data = {
+                    "title": title,
+                    "timestamp": timestamp,
+                    "url": url,
+                    "ext": ext,
+                }
 
-                if ext == "mhtml":
+                filepath = path % format_data
+
+                if ext == "mhtml" or ext == "mht":
                     client = page.context.new_cdp_session(page)
                     mhtml = client.send("Page.captureSnapshot")["data"]
-                    with open(path, mode="w", encoding="UTF-8", newline="\n") as file:
+                    with open(filepath, mode="w", encoding="UTF-8", newline="\n") as file:
                         file.write(mhtml)
                 elif ext == "pdf":
-                    page.pdf(path=path)
+                    page.pdf(path=filepath)
 
                 page.close()
                 self.logger.debug(f"Page close")
 
-                absolute_path = Path(path).resolve()
+                absolute_path = Path(filepath).resolve()
                 return absolute_path
 
             except Exception as e:
