@@ -60,9 +60,10 @@ class waybackmachine:
         }
 
         def archive_save() -> None:
+            session = requests.session()
             for i in range(max_tries):
                 try:
-                    r = requests.get(
+                    r = session.get(
                         "https://web.archive.org/save/" + url, proxies=self.proxies
                     )
 
@@ -76,13 +77,14 @@ class waybackmachine:
                         raise RetryLimitExceededError(format_exc())
 
         def get_resources() -> None:
-            def get_status(job_id: str) -> dict:
-                status_r = requests.get(
+            def get_status(job_id: str, session: requests.session) -> dict:
+                status_r = session.get(
                     "https://web.archive.org/save/status/" + job_id,
                     proxies=self.proxies,
                 )
                 return status_r.json()
-
+            
+            session = requests.session()
             for i in range(max_tries):
                 try:
                     data = {"url": url, "capture_all": "on"}
@@ -93,7 +95,7 @@ class waybackmachine:
                         "Content-Type": "application/x-www-form-urlencoded",
                     }
 
-                    r = requests.post(
+                    r = session.post(
                         "https://web.archive.org/save/" + url,
                         headers=headers,
                         data=data,
@@ -116,7 +118,7 @@ class waybackmachine:
                             self.logger.debug(f"job_id is {job_id}")
                             status, old_resources = "pending", []
                             while status == "pending":
-                                status_data = get_status(job_id)
+                                status_data = get_status(job_id,session)
                                 new_resources = status_data.get("resources", [])
                                 if new_resources != old_resources:
                                     for c in set(new_resources) - set(old_resources):
@@ -130,7 +132,7 @@ class waybackmachine:
                                     ):
                                         time.sleep(0.1)
                                     else:
-                                        status_data = get_status(job_id)
+                                        status_data = get_status(job_id,session)
                                         new_resources = status_data.get("resources", [])
                                         if new_resources != old_resources:
                                             for c in set(new_resources) - set(
@@ -141,7 +143,7 @@ class waybackmachine:
                             while archive_data["url"] is None:
                                 time.sleep(0.1)
 
-                        final_status = get_status(job_id)
+                        final_status = get_status(job_id,session)
                         archive_data["timestamp"] = self.conv_datetime(
                             final_status.get("timestamp", "")
                         )
@@ -182,6 +184,7 @@ class waybackmachine:
                 "timestamp should be 'latest', 'oldest', or a datetime object"
             )
 
+        session = requests.session()
         for i in range(max_tries):
             try:
                 timestamp = (
@@ -200,7 +203,7 @@ class waybackmachine:
                     "timestamp": timestamp_str,
                 }
 
-                r = requests.get(
+                r = session.get(
                     "https://archive.org/wayback/available",
                     params=params,
                     proxies=self.proxies,
