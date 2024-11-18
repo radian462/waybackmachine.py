@@ -174,7 +174,7 @@ class waybackmachine:
         return archive_data
 
     def get(
-        self, url: str, timestamp: datetime | str = "latest", max_tries: int = None
+        self, url: str, timestamp: datetime | str = "latest",retry_if_empty: bool = True, max_tries: int = None
     ) -> dict:
         if max_tries is None:
             max_tries = self.max_tries
@@ -225,7 +225,10 @@ class waybackmachine:
 
                     return archive_data
                 else:
-                    return {}
+                    if retry_if_empty and i + 1 != max_tries:
+                        raise NotFoundError("Archive Not Found")
+                    else:
+                        return {}
             except Exception as e:
                 self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
 
