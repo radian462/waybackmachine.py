@@ -1,4 +1,4 @@
 from waybacktools import waybackmachine
 
 wayback = waybackmachine()
-print(wayback.save('https://github.com/radian462/waybacktools/'))
+print(wayback.save('https://www.google.co.jp/',show_resources=False))
