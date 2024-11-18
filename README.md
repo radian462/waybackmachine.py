@@ -370,7 +370,8 @@ pprint(wayback.get("https://www.google.co.jp/"), sort_dicts=False)
 from waybacktools import waybackmachine
 
 wayback = waybackmachine()
-print(wayback.download('https://github.com/radian462/waybacktools'))
+print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s - %(timestamp)s.%(ext)s"))
+
 ```
 
 
@@ -378,7 +379,7 @@ print(wayback.download('https://github.com/radian462/waybacktools'))
     <summary>ログ</summary>
     
 ```bash
-/workspaces/waybackmachine.py/Google - 20241114035449.mhtml
+/workspaces/waybackmachine.py/test/file/Google - 20241114132200.mhtml
 ```
 </details>
 
