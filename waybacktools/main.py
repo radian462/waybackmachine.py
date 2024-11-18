@@ -45,11 +45,19 @@ class waybackmachine:
         self.browser = getattr(self.playwright, self.browser_type).launch()
         self.logger.debug("Browser launch")
 
+    def conv_datetime(self, timestamp):
+        return datetime.strptime(timestamp, "%Y%m%d%H%M%S")
+
     def save(self, url: str, show_resources: bool = True, max_tries: int = None) -> str:
         if max_tries is None:
             max_tries = self.max_tries
 
-        archive_data = {"url": None, "timestamp": None, "resources": None}
+        archive_data = {
+            "url": None,
+            "timestamp": None,
+            "timestamp_str": None,
+            "resources": None,
+        }
 
         def archive_save() -> None:
             for i in range(max_tries):
@@ -59,19 +67,13 @@ class waybackmachine:
                     )
 
                     if r.status_code == 429:
-                        raise TooManyRequestsError(
-                            "Your IP has been blocked."
-                            "Save Page Now has a limit of 15 requests per minute."
-                            "Please try again in 5 minutes."
-                        )
+                        raise TooManyRequestsError()
 
                     archive_data["url"] = r.url
                 except Exception as e:
                     self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
                     if i + 1 == max_tries:
-                        raise RetryLimitExceededError(
-                            f"The retry limit has been reached.\n{format_exc()}"
-                        )
+                        raise RetryLimitExceededError(format_exc())
 
         def get_resources() -> None:
             def get_status(job_id: str) -> dict:
@@ -140,16 +142,19 @@ class waybackmachine:
                                 time.sleep(0.1)
 
                         final_status = get_status(job_id)
-                        archive_data["timestamp"] = final_status.get("timestamp", [])
+                        archive_data["timestamp"] = self.conv_datetime(
+                            final_status.get("timestamp", "")
+                        )
+                        archive_data["timestamp_str"] = final_status.get(
+                            "timestamp", ""
+                        )
                         archive_data["resources"] = final_status.get("resources", [])
                     else:
                         self.logger.debug(f"job_id not found")
                 except Exception as e:
                     self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
                     if i + 1 == max_tries:
-                        raise RetryLimitExceededError(
-                            f"The retry limit has been reached.\n{format_exc()}"
-                        )
+                        raise RetryLimitExceededError(format_exc())
 
         thread1 = Thread(target=archive_save)
         thread2 = Thread(target=get_resources)
@@ -161,8 +166,12 @@ class waybackmachine:
         return archive_data
 
     def get(
-        self, url: str, timestamp: datetime | str = "latest", max_tries: int = None
-    ) -> tuple:
+        self,
+        url: str,
+        timestamp: datetime | str = "latest",
+        retry_if_empty: bool = True,
+        max_tries: int = None,
+    ) -> dict:
         if max_tries is None:
             max_tries = self.max_tries
 
@@ -203,19 +212,24 @@ class waybackmachine:
                         archive["url"],
                         archive["timestamp"],
                     )
-                    archive_timestamp = datetime.strptime(
-                        archive_timestamp, "%Y%m%d%H%M%S"
-                    )
-                    return (archive_url, archive_timestamp)
+
+                    archive_data = {
+                        "url": archive_url,
+                        "timestamp": self.conv_datetime(archive_timestamp),
+                        "timestamp_str": archive_timestamp,
+                    }
+
+                    return archive_data
                 else:
-                    return ()
+                    if retry_if_empty and i + 1 != max_tries:
+                        raise NotFoundError()
+                    else:
+                        return {}
             except Exception as e:
                 self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
 
                 if i + 1 == max_tries:
-                    raise RetryLimitExceededError(
-                        f"The retry limit has been reached.\n{format_exc()}"
-                    )
+                    raise RetryLimitExceededError(format_exc())
 
     def download(
         self,
@@ -235,12 +249,12 @@ class waybackmachine:
                 self.logger.debug(f"url:{url}")
 
                 if "web.archive.org/web/" not in url:
-                    archive_data = self.get(url, max_tries=1)
+                    archive_data = self.get(url)
                     if archive_data:
-                        archive_url = archive_data[0]
+                        archive_url = archive_data["url"]
                         self.logger.debug(f"Archive Found")
                     else:
-                        raise NotFoundError("Archive Not Found")
+                        raise NotFoundError()
                 else:
                     archive_url = url
 
@@ -291,6 +305,4 @@ class waybackmachine:
             except Exception as e:
                 self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
                 if i + 1 == max_tries:
-                    raise RetryLimitExceededError(
-                        f"The retry limit has been reached.\n{format_exc()}"
-                    )
+                    raise RetryLimitExceededError(format_exc())
