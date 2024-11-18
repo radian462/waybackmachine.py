@@ -45,11 +45,19 @@ class waybackmachine:
         self.browser = getattr(self.playwright, self.browser_type).launch()
         self.logger.debug("Browser launch")
 
+    def conv_datetime(self, timestamp):
+        return datetime.strptime(timestamp, "%Y%m%d%H%M%S")
+
     def save(self, url: str, show_resources: bool = True, max_tries: int = None) -> str:
         if max_tries is None:
             max_tries = self.max_tries
 
-        archive_data = {"url": None, "timestamp": None, "resources": None}
+        archive_data = {
+            "url": None,
+            "timestamp": None,
+            "timestamp_str": None,
+            "resources": None,
+        }
 
         def archive_save() -> None:
             for i in range(max_tries):
@@ -140,7 +148,12 @@ class waybackmachine:
                                 time.sleep(0.1)
 
                         final_status = get_status(job_id)
-                        archive_data["timestamp"] = final_status.get("timestamp", [])
+                        archive_data["timestamp"] = self.conv_datetime(
+                            final_status.get("timestamp", "")
+                        )
+                        archive_data["timestamp_str"] = final_status.get(
+                            "timestamp", ""
+                        )
                         archive_data["resources"] = final_status.get("resources", [])
                     else:
                         self.logger.debug(f"job_id not found")
@@ -162,7 +175,7 @@ class waybackmachine:
 
     def get(
         self, url: str, timestamp: datetime | str = "latest", max_tries: int = None
-    ) -> tuple:
+    ) -> dict:
         if max_tries is None:
             max_tries = self.max_tries
 
@@ -203,12 +216,16 @@ class waybackmachine:
                         archive["url"],
                         archive["timestamp"],
                     )
-                    archive_timestamp = datetime.strptime(
-                        archive_timestamp, "%Y%m%d%H%M%S"
-                    )
-                    return (archive_url, archive_timestamp)
+
+                    archive_data = {
+                        "url": archive_url,
+                        "timestamp": self.conv_datetime(archive_timestamp),
+                        "timestamp_str": archive_timestamp,
+                    }
+
+                    return archive_data
                 else:
-                    return ()
+                    return {}
             except Exception as e:
                 self.logger.debug(f"Attempt {i + 1} failed\n{format_exc()}")
 

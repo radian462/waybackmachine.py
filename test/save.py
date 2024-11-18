@@ -1,4 +1,5 @@
+from pprint import pprint
 from waybacktools import waybackmachine
 
 wayback = waybackmachine()
-print(wayback.save('https://dmwiki.net'))
+pprint(wayback.save("https://www.google.co.jp/"), sort_dicts=False)
