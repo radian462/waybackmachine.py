@@ -399,7 +399,7 @@ print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s 
 
 # 実装予定
 - [ ] asyncに対応
-- [ ] 脱playwright
+- [ ] playwrightの依存の解消
 - [ ] 動作の安定化
 
 # 開発者
