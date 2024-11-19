@@ -1,14 +1,9 @@
 [日本語](./README.md)
-
 # waybacktools
+Unofficial Python API Wrapper for Wayback Machine.  
+Currently under development.
 
-[English](./README-EN.md)
-
-# waybacktools
-waybackmachineのpythonの非公式APIラッパー  
-現在開発中
-
-#Features
+# Features
 ## **No API Key Required**
 This library does not require an API key.
 
@@ -251,8 +246,8 @@ I3LFb,yYB61,O6y8ed,PrPYRd,MpJwZc,LEikZe,NwH0H,OmgaI,lazG7b,XVMNvd,L1AAkb,KUM7Z,M
                'https://ogs.google.co.jp/widget/callout?prid=19037050&pgid=19037049&puid=9ceb59a7585b55bd&eom=1&cce=1&dc=1&origin=https://www.google.co.jp&cn=callout&pid=1&spid=538&hl=en']}    
 ```   
 </details>
-  
-サイトによっては膨大な量のLogが流れるので、リソースLogを隠したい場合はこのように書いてください。
+
+For some websites, a large number of logs may be generated. If you want to hide resource logs, use the following method.
 
 ```python
 from pprint import pprint
