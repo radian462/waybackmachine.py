@@ -391,6 +391,9 @@ wayback = waybackmachine()
 print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s - %(timestamp)s.%(ext)s", ext="pdf"))
 ```
 
+<details>
+    <summary>Log</summary>
+    
 ```bash
 /workspaces/waybackmachine.py/test/file/Google - 20241118133116.pdf
 ```

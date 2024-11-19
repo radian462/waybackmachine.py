@@ -63,7 +63,7 @@ class waybackmachine:
             session = requests.session()
             for i in range(max_tries):
                 try:
-                    self.logger.degug('Start Saving Archive')
+                    self.logger.degug("Start Saving Archive")
                     r = session.get(
                         "https://web.archive.org/save/" + url, proxies=self.proxies
                     )
@@ -83,7 +83,7 @@ class waybackmachine:
                     "https://web.archive.org/save/status/" + job_id,
                     proxies=self.proxies,
                 )
-                self.logger.debug('Resource Request')
+                self.logger.debug("Resource Request")
                 return status_r.json()
 
             session = requests.session()
@@ -127,7 +127,7 @@ class waybackmachine:
                                         self.logger.info(c)
                                 old_resources = new_resources
                                 status = status_data.get("status", "pending")
-                                #実際のwaybackの通信は6秒くらいの間隔
+                                # 実際のwaybackの通信は6秒くらいの間隔
                                 for i in range(60):
                                     if (
                                         archive_data["url"] is None
@@ -303,7 +303,9 @@ class waybackmachine:
                 if ext == "mhtml" or ext == "mht":
                     client = page.context.new_cdp_session(page)
                     mhtml = client.send("Page.captureSnapshot")["data"]
-                    with open(filepath, mode="w", encoding="UTF-8", newline="\n") as file:
+                    with open(
+                        filepath, mode="w", encoding="UTF-8", newline="\n"
+                    ) as file:
                         file.write(mhtml)
                 elif ext == "pdf":
                     page.pdf(path=filepath)
