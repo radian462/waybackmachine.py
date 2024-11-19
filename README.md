@@ -366,6 +366,7 @@ pprint(wayback.get("https://www.google.co.jp/"), sort_dicts=False)
 </details>
 
 ## ダウンロード
+### mhtml
 ```python
 from waybacktools import waybackmachine
 
@@ -380,6 +381,19 @@ print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s 
     
 ```bash
 /workspaces/waybackmachine.py/test/file/Google - 20241114132200.mhtml
+```
+</details>
+
+### pdf
+```python
+from waybacktools import waybackmachine
+
+wayback = waybackmachine()
+print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s - %(timestamp)s.%(ext)s", ext="pdf"))
+```
+
+```bash
+/workspaces/waybackmachine.py/test/file/Google - 20241118133116.pdf
 ```
 </details>
 
