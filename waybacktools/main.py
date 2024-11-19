@@ -63,6 +63,7 @@ class waybackmachine:
             session = requests.session()
             for i in range(max_tries):
                 try:
+                    self.logger.degug('Start Saving Archive')
                     r = session.get(
                         "https://web.archive.org/save/" + url, proxies=self.proxies
                     )
@@ -82,6 +83,7 @@ class waybackmachine:
                     "https://web.archive.org/save/status/" + job_id,
                     proxies=self.proxies,
                 )
+                self.logger.debug('Resource Request')
                 return status_r.json()
 
             session = requests.session()
@@ -125,7 +127,8 @@ class waybackmachine:
                                         self.logger.info(c)
                                 old_resources = new_resources
                                 status = status_data.get("status", "pending")
-                                for i in range(30):
+                                #実際のwaybackの通信は6秒くらいの間隔
+                                for i in range(60):
                                     if (
                                         archive_data["url"] is None
                                         or status == "pending"
@@ -140,6 +143,7 @@ class waybackmachine:
                                             ):
                                                 self.logger.info(c)
                         else:
+                            self.logger.debug(f"job_id Not Found")
                             while archive_data["url"] is None:
                                 time.sleep(0.1)
 
