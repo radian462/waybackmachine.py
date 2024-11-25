@@ -7,7 +7,7 @@ def requirements_from_file(file_name):
 
 setup(
     name="waybacktools",
-    version="1.0.0",
+    version="0.1.0",
     packages=find_packages(),
     author="radian462",
     url="https://github.com/radian462/waybacktools",
