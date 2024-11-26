@@ -1,16 +1,50 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 def requirements_from_file(file_name):
     return open(file_name).read().splitlines()
 
 
+DESCRIPTION = "Unofficial API Wrapper for the Wayback Machine"
+NAME = "waybacktools"
+AUTHOR = "radian462"
+AUTHOR_EMAIL = "no-number-email@proton.me"
+URL = "https://github.com/radian462/waybacktools"
+LICENSE = "Apache License 2.0"
+KEYWORDS = "waybacktools,wayback,waybackmachine"
+DOWNLOAD_URL = "https://github.com/radian462/waybacktools"
+VERSION = "0.1.0"
+PYTHON_REQUIRES = ">=3.8"
+INSTALL_REQUIRES = requirements_from_file("reuqirements.txt")
+PACKAGES = ["waybacktools"]
+CLASSIFIERS = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+]
+
+with open("README-EN.md", encoding="utf-8") as f:
+    LONG_DESCRIPTION = f.read()
+
 setup(
-    name="waybacktools",
-    version="0.1.0",
-    packages=find_packages(),
-    author="radian462",
-    url="https://github.com/radian462/waybacktools",
-    install_requires=requirements_from_file("requirements.txt"),
-    include_package_data=True,
+    name=NAME,
+    author=AUTHOR,
+    author_email=AUTHOR_EMAIL,
+    maintainer=AUTHOR,
+    maintainer_email=AUTHOR_EMAIL,
+    description=DESCRIPTION,
+    long_description=LONG_DESCRIPTION,
+    license=LICENSE,
+    keywords=KEYWORDS,
+    url=URL,
+    version=VERSION,
+    download_url=DOWNLOAD_URL,
+    python_requires=PYTHON_REQUIRES,
+    install_requires=INSTALL_REQUIRES,
+    packages=PACKAGES,
+    classifiers=CLASSIFIERS,
 )
