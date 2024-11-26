@@ -38,7 +38,7 @@ setup(
     maintainer_email=AUTHOR_EMAIL,
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
-    long_description_content_type='text/markdown'
+    long_description_content_type='text/markdown',
     license=LICENSE,
     keywords=KEYWORDS,
     url=URL,
