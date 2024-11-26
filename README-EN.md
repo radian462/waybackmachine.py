@@ -1,7 +1,6 @@
 [日本語](https://github.com/radian462/waybacktools/blob/main/README.md)
 # waybacktools
 Unofficial Python API Wrapper for Wayback Machine.  
-Currently under development.
 
 # Features
 ## **No API Key Required**

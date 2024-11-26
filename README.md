@@ -2,7 +2,6 @@
 
 # waybacktools
 waybackmachineのpythonの非公式APIラッパー  
-現在開発中
 
 # 特徴
 ## **API Keyが不要**
