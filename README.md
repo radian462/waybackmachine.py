@@ -1,4 +1,4 @@
-[English](https://github.com/radian462/waybacktools/README-EN.md)
+[English](https://github.com/radian462/waybacktools/blob/main/README-EN.md)
 
 # waybacktools
 waybackmachineのpythonの非公式APIラッパー  
