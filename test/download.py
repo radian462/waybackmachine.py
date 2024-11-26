@@ -1,6 +1,6 @@
-from waybacktools import waybackmachine
+from waybacktools import waybacktools
 
-wayback = waybackmachine()
+wayback = waybacktools()
 print(
     wayback.download(
         "https://www.google.co.jp/",

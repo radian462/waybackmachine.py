@@ -1,4 +1,4 @@
-[日本語](./README.md)
+[日本語](https://github.com/radian462/waybacktools/README.md)
 # waybacktools
 Unofficial Python API Wrapper for Wayback Machine.  
 Currently under development.
@@ -23,9 +23,9 @@ playwright install
 ## Save
 ```python
 from pprint import pprint
-from waybacktools import waybackmachine
+from waybacktools import waybacktools
 
-wayback = waybackmachine()
+wayback = waybacktools()
 pprint(wayback.save("https://www.google.co.jp/"), sort_dicts=False)
 ```
 <details>
@@ -251,9 +251,9 @@ For some websites, a large number of logs may be generated. If you want to hide 
 
 ```python
 from pprint import pprint
-from waybacktools import waybackmachine
+from waybacktools import waybacktools
 
-wayback = waybackmachine()
+wayback = waybacktools()
 pprint(wayback.save("https://www.google.co.jp/",show_resources=False), sort_dicts=False)
 ```
 
@@ -345,9 +345,9 @@ pprint(wayback.save("https://www.google.co.jp/",show_resources=False), sort_dict
 ## Fetching
 ```python
 from pprint import pprint
-from waybacktools import waybackmachine
+from waybacktools import waybacktools
 
-wayback = waybackmachine()
+wayback = waybacktools()
 pprint(wayback.get("https://www.google.co.jp/"), sort_dicts=False)
 ```
 
@@ -367,9 +367,9 @@ pprint(wayback.get("https://www.google.co.jp/"), sort_dicts=False)
 ## Download
 ### mhtml
 ```python
-from waybacktools import waybackmachine
+from waybacktools import waybacktools
 
-wayback = waybackmachine()
+wayback = waybacktools()
 print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s - %(timestamp)s.%(ext)s"))
 
 ```
@@ -385,9 +385,9 @@ print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s 
 
 ### pdf
 ```python
-from waybacktools import waybackmachine
+from waybacktools import waybacktools
 
-wayback = waybackmachine()
+wayback = waybacktools()
 print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s - %(timestamp)s.%(ext)s", ext="pdf"))
 ```
 
@@ -400,6 +400,7 @@ print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s 
 </details>
 
 # Planned Features
+- [ ] Creating documentation with Sphinx
 - [ ] Async Support
 - [ ] Remove Playwright Dependency
 - [ ] Improve Stability

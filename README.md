@@ -1,4 +1,4 @@
-[English](./README-EN.md)
+[English](https://github.com/radian462/waybacktools/README-EN.md)
 
 # waybacktools
 waybackmachineのpythonの非公式APIラッパー  
@@ -24,9 +24,9 @@ playwright install
 ## 保存
 ```python
 from pprint import pprint
-from waybacktools import waybackmachine
+from waybacktools import waybacktools
 
-wayback = waybackmachine()
+wayback = waybacktools()
 pprint(wayback.save("https://www.google.co.jp/"), sort_dicts=False)
 ```
 <details>
@@ -252,9 +252,9 @@ I3LFb,yYB61,O6y8ed,PrPYRd,MpJwZc,LEikZe,NwH0H,OmgaI,lazG7b,XVMNvd,L1AAkb,KUM7Z,M
 
 ```python
 from pprint import pprint
-from waybacktools import waybackmachine
+from waybacktools import waybacktools
 
-wayback = waybackmachine()
+wayback = waybacktools()
 pprint(wayback.save("https://www.google.co.jp/",show_resources=False), sort_dicts=False)
 ```
 
@@ -346,9 +346,9 @@ pprint(wayback.save("https://www.google.co.jp/",show_resources=False), sort_dict
 ## 取得
 ```python
 from pprint import pprint
-from waybacktools import waybackmachine
+from waybacktools import waybacktools
 
-wayback = waybackmachine()
+wayback = waybacktools()
 pprint(wayback.get("https://www.google.co.jp/"), sort_dicts=False)
 ```
 
@@ -368,9 +368,9 @@ pprint(wayback.get("https://www.google.co.jp/"), sort_dicts=False)
 ## ダウンロード
 ### mhtml
 ```python
-from waybacktools import waybackmachine
+from waybacktools import waybacktools
 
-wayback = waybackmachine()
+wayback = waybacktools()
 print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s - %(timestamp)s.%(ext)s"))
 
 ```
@@ -386,9 +386,9 @@ print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s 
 
 ### pdf
 ```python
-from waybacktools import waybackmachine
+from waybacktools import waybacktools
 
-wayback = waybackmachine()
+wayback = waybacktools()
 print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s - %(timestamp)s.%(ext)s", ext="pdf"))
 ```
 
@@ -401,6 +401,7 @@ print(wayback.download("https://www.google.co.jp/", path="./test/file/%(title)s 
 </details>
 
 # 実装予定
+- [ ] sphinxでのドキュメントを作成
 - [ ] asyncに対応
 - [ ] playwrightの依存の解消
 - [ ] 動作の安定化

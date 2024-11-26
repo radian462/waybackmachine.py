@@ -1,5 +1,5 @@
 from pprint import pprint
-from waybacktools import waybackmachine
+from waybacktools import waybacktools
 
-wayback = waybackmachine()
+wayback = waybacktools()
 pprint(wayback.save("https://www.google.co.jp/"), sort_dicts=False)

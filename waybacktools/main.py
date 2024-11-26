@@ -14,7 +14,7 @@ from playwright.sync_api import sync_playwright
 from .exceptions import *
 
 
-class waybackmachine:
+class waybacktools:
     def __init__(
         self,
         max_tries: int = 5,
