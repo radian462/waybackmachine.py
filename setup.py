@@ -15,7 +15,7 @@ KEYWORDS = "waybacktools,wayback,waybackmachine"
 DOWNLOAD_URL = "https://github.com/radian462/waybacktools"
 VERSION = "0.1.0"
 PYTHON_REQUIRES = ">=3.8"
-INSTALL_REQUIRES = requirements_from_file("reuqirements.txt")
+INSTALL_REQUIRES = requirements_from_file("requirements.txt")
 PACKAGES = ["waybacktools"]
 CLASSIFIERS = [
     "License :: OSI Approved :: MIT License",
