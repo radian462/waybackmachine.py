@@ -1,6 +1,9 @@
 [日本語](https://github.com/radian462/waybacktools/blob/main/README.md)
 
+<div>
+
 ![PyPI Downloads](https://static.pepy.tech/badge/waybacktools)
+</div>
 
 # waybacktools
 Unofficial Python API Wrapper for Wayback Machine.  
