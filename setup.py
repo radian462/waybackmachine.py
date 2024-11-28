@@ -1,10 +1,6 @@
 from setuptools import setup
 
 
-def requirements_from_file(file_name):
-    return open(file_name).read().splitlines()
-
-
 DESCRIPTION = "Unofficial API Wrapper for the Wayback Machine"
 NAME = "waybacktools"
 AUTHOR = "radian462"
@@ -13,9 +9,13 @@ URL = "https://github.com/radian462/waybacktools"
 LICENSE = "MIT License"
 KEYWORDS = "waybacktools,wayback,waybackmachine"
 DOWNLOAD_URL = "https://github.com/radian462/waybacktools"
-VERSION = "0.1.0"
+VERSION = "0.1.2"
 PYTHON_REQUIRES = ">=3.8"
-INSTALL_REQUIRES = requirements_from_file("requirements.txt")
+INSTALL_REQUIRES = [
+    'beautifulsoup4',
+    'playwright',
+    'requests',
+]
 PACKAGES = ["waybacktools"]
 CLASSIFIERS = [
     "License :: OSI Approved :: MIT License",

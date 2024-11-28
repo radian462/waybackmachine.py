@@ -63,7 +63,7 @@ class waybacktools:
             session = requests.session()
             for i in range(max_tries):
                 try:
-                    self.logger.degug("Start Saving Archive")
+                    self.logger.debug("Start Saving Archive")
                     r = session.get(
                         "https://web.archive.org/save/" + url, proxies=self.proxies
                     )

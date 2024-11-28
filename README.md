@@ -1,4 +1,5 @@
 [English](https://github.com/radian462/waybacktools/blob/main/README-EN.md)
+![PyPI Downloads](https://static.pepy.tech/badge/waybacktools)
 
 # waybacktools
 waybackmachineのpythonの非公式APIラッパー  
